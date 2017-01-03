@@ -2,6 +2,7 @@ var map;
 var tour;
 var markers = [];
 
+
 function initMap(locations) {
 
 	var styledMapType = new google.maps.StyledMapType(
@@ -193,6 +194,7 @@ function initMap(locations) {
 	],
 	{name: 'Styled Map'});
 
+
 map = new google.maps.Map(document.getElementById('map'), {
   zoom: 3,
   center: {lat: 0, lng: 0},
@@ -212,46 +214,70 @@ function setMarkers(locations, eventDate, eventName) {
 	// setMap(null);
 	// var concertLocations = locations;
 	var count = 1;
-	
+	var bounds = new google.maps.LatLngBounds();
 
 	// loop over concertLocations and add pin
-		locations.forEach(function(location, i){
-			window.setTimeout(function() {	
-			  markers.push(new google.maps.Marker({
-			    position: location,
-			    map: map,
-			    icon: 'http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld='+count+'|5e769b|000000',
-			    title: eventName[i] + " "+ eventDate[i],
-			    animation: google.maps.Animation.DROP
-			  }));
-			  
-			  count++;
-			}, i * 205);
+		for(i = 0; i < locations.length; i++) {
+			var marker = new google.maps.Marker({
+				position: locations[i],
+				map: map,
+				icon: 'http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld='+(i+1)+'|5e769b|000000',
+				title: eventName[i] + " "+ eventDate[i],
+				animation: google.maps.Animation.DROP
+			})
+			bounds.extend(locations[i]);
+		}
 
-			
+		map.fitBounds(bounds);
+		map.panToBounds(bounds);
+
+		// locations.forEach(function(location, i){
+		// 	window.setTimeout(function() {	
+		// 	  markers.push(new google.maps.Marker({
+		// 	    position: location,
+		// 	    map: map,
+		// 	    icon: 'http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld='+count+'|5e769b|000000',
+		// 	    title: eventName[i] + " "+ eventDate[i],
+		// 	    animation: google.maps.Animation.DROP
+		// 	  }));
+		// 	  bounds.extend(locations);
+		// 	  count++;
+		// 	}, i * 205);
+
+		// 	map.fitBounds(bounds);
+		// 	map.panToBounds(bounds);
 			 
 			// if(count == concertLocations.length) {
 			// 	// call next function
 			// }
-		})
+		// })
 		
+		tour = new google.maps.Polyline({
+		  path: locations,
+		  geodesic: true,
+		  strokeColor: 'yellow',
+		  strokeOpacity: 0.5,
+		  strokeWeight: 2
+		});
+
+		tour.setMap(map);
 			
-		locations.reduce(function(prev, curr, i)  {
-			console.log("PREV", prev)
-			window.setTimeout(function() {
-				tour = new google.maps.Polyline({
-				  path: [prev, curr],
-				  geodesic: true,
-				  strokeColor: 'yellow',
-				  strokeOpacity: 0.5,
-				  strokeWeight: 2
-				});
-				tour.setMap(map);
-				// console.log("POLYLINE" + tour);
+		// locations.reduce(function(prev, curr, i)  {
+		// 	console.log("PREV", prev)
+		// 	window.setTimeout(function() {
+		// 		tour = new google.maps.Polyline({
+		// 		  path: [prev, curr],
+		// 		  geodesic: true,
+		// 		  strokeColor: 'yellow',
+		// 		  strokeOpacity: 0.5,
+		// 		  strokeWeight: 2
+		// 		});
+		// 		tour.setMap(map);
+		// 		// console.log("POLYLINE" + tour);
 				
-			}, i * 225);
-			return curr;
-		})
+		// 	}, i * 225);
+		// 	return curr;
+		// })
 			
 
 			
@@ -274,7 +300,9 @@ function setMarkers(locations, eventDate, eventName) {
 
 function clearMarkers() {
 
-
+	if(tour) {
+		tour.setMap(null);
+	}
 	for (var i = 0; i < markers.length; i++) {
 	  // tour[i].pop();
 	  markers[i].setMap(null);
@@ -386,6 +414,7 @@ function watchArtistSelection() {
 
 	$("#search-bar").on('change',"#artistSelection", function(){
 	    console.log("artistId " + this.value);
+	    
 	    getEventHistoryFromApi(this.value);
 
 	});  
