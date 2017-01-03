@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+	<title>Band Tracker</title>
+	<link rel="stylesheet" href="styles.css"></link>
+</head>
+<body>
+	<section id="search-bar">
+		<form action="#" class="js-search-form">
+			<div class="search">
+			<input type="text" id="bandname">
+			<button type="submit">Search</form>
+			</div>
+		</form>
+		<div id="dropdown"></div>
+	</section>
+	<div id="errContainer">
+		<span class="errMsg hide"><strong>There are no items matching that search</strong></span>
+	</div>
+	<div id="map"></div>
+	<script async defer
+	src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDd2YiG5SZRDx96i1rzeX-VSUUYbBvu0Lg&callback=initMap">
+	// &callback=initMap
+	</script>
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.0/jquery.min.js"></script>
+	
+	<script	src="app2.js"></script>
+</body>
+</html>
