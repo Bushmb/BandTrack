@@ -240,7 +240,7 @@ function setMarkers(locations, eventDate, eventName) {
 			  markers.push(new google.maps.Marker({
 			    position: location,
 			    map: map,
-			    icon: 'http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld='+count+'|5e769b|000000',
+			    icon: 'https://chart.apis.google.com/chart?chst=d_map_pin_letter&chld='+count+'|5e769b|000000',
 			    title: eventName[i] + " "+ eventDate[i],
 			    animation: google.maps.Animation.DROP
 			  }));
