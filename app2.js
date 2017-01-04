@@ -212,9 +212,10 @@ map.setMapTypeId('styled_map');
 
 function setMarkers(locations, eventDate, eventName) {
 
-	clearMarkers();
+	// clearMarkers();
 	// setMap(null);
 	// var concertLocations = locations;
+	
 	var count = 1;
 	var bounds = new google.maps.LatLngBounds();
 
@@ -223,8 +224,16 @@ function setMarkers(locations, eventDate, eventName) {
 			bounds.extend(locations[i]);
 		}
 
+		if(locations.length > 1) {
 		map.fitBounds(bounds);
 		map.panToBounds(bounds);
+		}
+
+		else {
+		map.setCenter(locations[0]);
+		map.setZoom(4);
+		}
+
 
 		locations.forEach(function(location, i){
 			window.setTimeout(function() {	
@@ -236,10 +245,10 @@ function setMarkers(locations, eventDate, eventName) {
 			    animation: google.maps.Animation.DROP
 			  }));
 			  count++;
-			}, i * 205);
+			}, i );
 		})
 
-		// 	map.fitBounds(bounds);
+		// 	map.fitBounds(bounds);* 205
 		// 	map.panToBounds(bounds);
 			 
 			// if(count == concertLocations.length) {
@@ -275,7 +284,7 @@ function setMarkers(locations, eventDate, eventName) {
 		// })
 			
 
-			
+	pageCount = 1;
 
 }
 
@@ -295,6 +304,7 @@ function setMarkers(locations, eventDate, eventName) {
 
 function clearMarkers() {
 
+	totalList = [];
 	if(tour) {
 		tour.setMap(null);
 	}
@@ -354,28 +364,40 @@ function getEventHistoryFromApi(artistId) {
 	var url = "http://api.songkick.com/api/3.0/artists/" + artistId + "/gigography.json?apikey=" + myApiKey + "&min_date=2012-01-01&max_date=2016-12-31";
 	
 	//"http://api.songkick.com/api/3.0/search/artists.json?query={search_query}&apikey={your_api_key}"
-
-	$.getJSON(url + "&page=" + pageCount+ "&jsoncallback=?", function(data){
+	console.log(pageCount);
+	$.getJSON(url + "&page=" + pageCount + "&jsoncallback=?", function(data){
 		var eventList = data.resultsPage.results.event;
-		console.log(eventList);
+		console.log(eventList)
+		// console.log("eventList length ", eventList.length);
 		
-		if (eventList == undefined) {
-					$('.errMsg').show().fadeOut(1200);     
-					return false;
+		if (eventList == undefined){
+			if(totalList.length >= 1){
+				reduceMyData(totalList);
+			}
+			else {
+				$('.errMsg').show().fadeOut(1200);     
+				return false;
+			}
 		}
 
 		else {
-			if(eventList.length = 50){
-				pageCount++;
-				totalList = totalList.concat(eventList);
-				console.log("inside length50 totalList",totalList);
-				getEventHistoryFromApi(artistId);
-			}
-
-			if(eventList.length > 1 && eventList.length < 50){
-				reduceMyData(totalList);
-			}	
-			
+			pageCount++;
+			totalList = totalList.concat(eventList);
+			console.log(totalList);
+			// console.log("totalList lenght", totalList.length);
+			getEventHistoryFromApi(artistId);
+			// if(eventList.length = 50){
+			// 	pageCount++;
+			// 	totalList = totalList.concat(eventList);
+			// 	console.log(totalList);
+			// 	// console.log("totalList lenght", totalList.length);
+			// 	getEventHistoryFromApi(artistId);
+			// }
+			// else if(eventList.length < 50){
+			// 	totalList = totalList.concat(eventList);
+			// 	console.log(totalList);
+			// 	getEventHistoryFromApi(artistId);
+			// }
 		}
 		
 
@@ -425,11 +447,21 @@ function reduceMyData(totalList){
 
 	var locations = totalList.reduce(function(eventArr, event){
 		if(event){
+			console.log(event.location.lat, event.location.lng);
 			delete event.location.city;
-			eventArr.push(event.location);	
+			if(event.location.lat == null || event.location.lng == null) {
+				event.location = {lat: 40.7128, lng: 74.0059}
+				eventArr.push(event.location);
+			}
+			else {
+				
+				eventArr.push(event.location);	
+			}	
 		}
 		return eventArr;
+			
 	}, []);
+	
 	
 	console.log("NAMES" + eventName);
 	console.log("DATES" + eventDate);
@@ -491,8 +523,8 @@ function watchSubmit() {
 		// }
 		var searchTerm = $('#bandname').val();
 		// console.log(searchTerm);
-		// clearMarkers();
-		totalList = [];
+		clearMarkers();
+		// totalList = [];
 		getArtistIdFromApi(searchTerm);
 		//initMap();
 		
@@ -503,8 +535,9 @@ function watchArtistSelection() {
 
 	$("#search-bar").on('change',"#artistSelection", function(){
 	    console.log("artistId " + this.value);
-	    // clearMarkers();
-	    totalList = [];
+	    clearMarkers();
+	    pageCount = 1;
+	    //totalList = [];
 	    getEventHistoryFromApi(this.value);
 
 	});  
