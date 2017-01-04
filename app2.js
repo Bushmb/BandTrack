@@ -245,7 +245,7 @@ function setMarkers(locations, eventDate, eventName) {
 			    animation: google.maps.Animation.DROP
 			  }));
 			  count++;
-			}, i );
+			}, i * 50);
 		})
 
 		// 	map.fitBounds(bounds);* 205
@@ -324,7 +324,7 @@ function getArtistIdFromApi(searchTerm) {
 	// var artistName = searchTerm;
 	var myApiKey = "ofqFcyXEVBW3U9se";
 
-	var url = "http://api.songkick.com/api/3.0/search/artists.json?query="+searchTerm+"&apikey="+myApiKey;
+	var url = "https://api.songkick.com/api/3.0/search/artists.json?query="+searchTerm+"&apikey="+myApiKey;
 
 
 
@@ -361,7 +361,7 @@ function getEventHistoryFromApi(artistId) {
 	// artist id with more than 50 results:  315398
 	var artistId = artistId;
 
-	var url = "http://api.songkick.com/api/3.0/artists/" + artistId + "/gigography.json?apikey=" + myApiKey + "&min_date=2012-01-01&max_date=2016-12-31";
+	var url = "https://api.songkick.com/api/3.0/artists/" + artistId + "/gigography.json?apikey=" + myApiKey + "&min_date=2012-01-01&max_date=2016-12-31";
 	
 	//"http://api.songkick.com/api/3.0/search/artists.json?query={search_query}&apikey={your_api_key}"
 	console.log(pageCount);
