@@ -1,7 +1,9 @@
 var map;
 var tour;
 var markers = [];
-
+var pageCount = 1;
+var totalList = [];
+var eventList;
 
 function initMap(locations) {
 
@@ -218,31 +220,24 @@ function setMarkers(locations, eventDate, eventName) {
 
 	// loop over concertLocations and add pin
 		for(i = 0; i < locations.length; i++) {
-			var marker = new google.maps.Marker({
-				position: locations[i],
-				map: map,
-				icon: 'http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld='+(i+1)+'|5e769b|000000',
-				title: eventName[i] + " "+ eventDate[i],
-				animation: google.maps.Animation.DROP
-			})
 			bounds.extend(locations[i]);
 		}
 
 		map.fitBounds(bounds);
 		map.panToBounds(bounds);
 
-		// locations.forEach(function(location, i){
-		// 	window.setTimeout(function() {	
-		// 	  markers.push(new google.maps.Marker({
-		// 	    position: location,
-		// 	    map: map,
-		// 	    icon: 'http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld='+count+'|5e769b|000000',
-		// 	    title: eventName[i] + " "+ eventDate[i],
-		// 	    animation: google.maps.Animation.DROP
-		// 	  }));
-		// 	  bounds.extend(locations);
-		// 	  count++;
-		// 	}, i * 205);
+		locations.forEach(function(location, i){
+			window.setTimeout(function() {	
+			  markers.push(new google.maps.Marker({
+			    position: location,
+			    map: map,
+			    icon: 'http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld='+count+'|5e769b|000000',
+			    title: eventName[i] + " "+ eventDate[i],
+			    animation: google.maps.Animation.DROP
+			  }));
+			  count++;
+			}, i * 205);
+		})
 
 		// 	map.fitBounds(bounds);
 		// 	map.panToBounds(bounds);
@@ -351,47 +346,139 @@ function getArtistIdFromApi(searchTerm) {
 }
 
 function getEventHistoryFromApi(artistId) {
+	
 	var myApiKey = "ofqFcyXEVBW3U9se";
+	// artist id with more than 50 results:  315398
+	var artistId = artistId;
 
-	var url = "http://api.songkick.com/api/3.0/artists/" + artistId + "/gigography.json?apikey=" + myApiKey + "&min_date=2015-01-01&max_date=2016-12-31";
-
+	var url = "http://api.songkick.com/api/3.0/artists/" + artistId + "/gigography.json?apikey=" + myApiKey + "&min_date=2012-01-01&max_date=2016-12-31";
+	
 	//"http://api.songkick.com/api/3.0/search/artists.json?query={search_query}&apikey={your_api_key}"
 
-	$.getJSON(url + "&jsoncallback=?", function(data){
+	$.getJSON(url + "&page=" + pageCount+ "&jsoncallback=?", function(data){
 		var eventList = data.resultsPage.results.event;
 		console.log(eventList);
-
-		if (eventList != undefined) {
-
-			var eventName = eventList.reduce(function(eventArr, event){
-				eventArr.push(event.displayName);
-				return eventArr;
-			}, []);
-
-			var eventDate = eventList.reduce(function(eventArr, event){
-				eventArr.push(event.start.date);
-				return eventArr;
-			}, []);
-
-
-			var locations = eventList.reduce(function(eventArr, event){
-				delete event.location.city;
-				eventArr.push(event.location);
-				return eventArr;
-			}, []);
-			
-			console.log("NAMES" + eventName);
-			console.log("DATES" + eventDate);
-			setMarkers(locations, eventDate, eventName);
+		
+		if (eventList == undefined) {
+					$('.errMsg').show().fadeOut(1200);     
+					return false;
 		}
+
 		else {
-			$('.errMsg').show().fadeOut(1200);        
-			return false;
+			if(eventList.length = 50){
+				pageCount++;
+				totalList = totalList.concat(eventList);
+				console.log("inside length50 totalList",totalList);
+				getEventHistoryFromApi(artistId);
+			}
+
+			if(eventList.length > 1 && eventList.length < 50){
+				reduceMyData(totalList);
+			}	
+			
 		}
+		
 
+		// }
+		// else {
+
+		// 	if(data.resultsPage.totalEntries > 50){
+		// 		pageCount++;
+		// 		console.log("in loop");
+		// 		totalList = totalList.concat(eventList);
+		// 		eventList = [];
+		// 		getEventHistoryFromApi(artistId);
+
+		// 	}
+		// 	if(eventList.length <= 50){
+		// 		console.log("out of loop")
+		// 		reduceMyData(totalList);
+		// 	}	
+		// }
+
+		// else {
+		// 	//reduceMyData(totalList);
+
+		// }
+		// reduceMyData(totalList);
+			
 	});
-
+	
 }
+
+function reduceMyData(totalList){
+	console.log(totalList);
+	var eventName = totalList.reduce(function(eventArr, event){
+		if(event) {
+			eventArr.push(event.displayName);
+		}
+		return eventArr;
+	}, []);
+
+	var eventDate = totalList.reduce(function(eventArr, event){
+		if(event) {
+			eventArr.push(event.start.date);	
+		}
+		return eventArr;
+	}, []);
+
+
+	var locations = totalList.reduce(function(eventArr, event){
+		if(event){
+			delete event.location.city;
+			eventArr.push(event.location);	
+		}
+		return eventArr;
+	}, []);
+	
+	console.log("NAMES" + eventName);
+	console.log("DATES" + eventDate);
+	setMarkers(locations, eventDate, eventName);
+}
+
+// function getEventHistoryFromApi(artistId) {
+// 	// pageCount = 2;
+// 	var myApiKey = "ofqFcyXEVBW3U9se";
+
+// 	var url = "http://api.songkick.com/api/3.0/artists/" + artistId + "/gigography.json?apikey=" + myApiKey + "&min_date=2015-01-01&max_date=2016-12-31";
+	
+// 	//"http://api.songkick.com/api/3.0/search/artists.json?query={search_query}&apikey={your_api_key}"
+
+// 	$.getJSON(url + "&jsoncallback=?", function(data){
+// 		var eventList = data.resultsPage.results.event;
+// 		console.log(eventList);
+
+// 			if (eventList != undefined) {
+
+// 				var eventName = eventList.reduce(function(eventArr, event){
+// 					eventArr.push(event.displayName);
+// 					return eventArr;
+// 				}, []);
+
+// 				var eventDate = eventList.reduce(function(eventArr, event){
+// 					eventArr.push(event.start.date);
+// 					return eventArr;
+// 				}, []);
+
+
+// 				var locations = eventList.reduce(function(eventArr, event){
+// 					delete event.location.city;
+// 					eventArr.push(event.location);
+// 					return eventArr;
+// 				}, []);
+				
+// 				console.log("NAMES" + eventName);
+// 				console.log("DATES" + eventDate);
+// 				setMarkers(locations, eventDate, eventName);
+// 			}
+// 			else {
+// 				$('.errMsg').show().fadeOut(1200);        
+// 				return false;
+// 			}
+
+// 	});
+
+// }
 
 
 function watchSubmit() {
@@ -404,6 +491,8 @@ function watchSubmit() {
 		// }
 		var searchTerm = $('#bandname').val();
 		// console.log(searchTerm);
+		// clearMarkers();
+		totalList = [];
 		getArtistIdFromApi(searchTerm);
 		//initMap();
 		
@@ -414,13 +503,11 @@ function watchArtistSelection() {
 
 	$("#search-bar").on('change',"#artistSelection", function(){
 	    console.log("artistId " + this.value);
-	    
+	    // clearMarkers();
+	    totalList = [];
 	    getEventHistoryFromApi(this.value);
 
 	});  
-	// var artistChoice = $('#artistSelection option:selected').val();
-	// console.log("selected item" + artistChoice);
-	// getEventHistoryFromApi(artistChoice);
 
 }
 
